@@ -1,6 +1,6 @@
 using System.Reflection;
 using ChitMeo.Mediator;
-using ChitMeo.Shared.Abstractions;
+using ChitMeo.Shared.Abstractions.Modules;
 
 namespace ChitMeo.Host.Extensions;
 
@@ -41,7 +41,7 @@ internal static class WebApplicationBuilderExtensions
 
         foreach (var module in modules)
         {
-            module.ConfigureServices(services);
+            module.ConfigureServices(services, config);
         }
 
         if (modules.Any())

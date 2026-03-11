@@ -10,4 +10,7 @@
   <Folder Name="/shared/">
     <Project Path="src/ChitMeo.Shared/ChitMeo.Shared.csproj" />
   </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/ChitMeo.Shared.Tests/ChitMeo.Shared.Tests.csproj" />
+  </Folder>
 </Solution>
