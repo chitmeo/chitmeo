@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/modules/">
+    <Project Path="src/modules/ChitMeo.Module.Auth/ChitMeo.Module.Auth.csproj" />
+    <Project Path="src/modules/ChitMeo.Module.Accounting/ChitMeo.Module.Accounting.csproj" />
+    <Project Path="src/modules/ChitMeo.Module.Blog/ChitMeo.Module.Blog.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/ChitMeo.Host/ChitMeo.Host.csproj" />
+  </Folder>
+  <Folder Name="/shared/">
+    <Project Path="src/ChitMeo.Shared/ChitMeo.Shared.csproj" />
+  </Folder>
+</Solution>
