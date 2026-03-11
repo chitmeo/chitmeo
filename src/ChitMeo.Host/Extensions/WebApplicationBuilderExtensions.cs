@@ -1,6 +1,6 @@
 using System.Reflection;
 using ChitMeo.Mediator;
-using ChitMeo.Shared.Abstractions;
+using ChitMeo.Shared.Abstractions.Modules;
 
 namespace ChitMeo.Host.Extensions;
 

@@ -11,5 +11,9 @@
   <ItemGroup>
     <PackageReference Include="ChitMeo.Mediator" Version="1.0.0" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Infrastructure\" />
+    <Folder Include="Infrastructure\Endpoints\" />
+  </ItemGroup>
 
 </Project>

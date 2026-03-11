@@ -1,4 +1,4 @@
-namespace ChitMeo.Shared.Abstractions;
+namespace ChitMeo.Shared.Abstractions.Modules;
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 public class DependsOnAttribute : Attribute
