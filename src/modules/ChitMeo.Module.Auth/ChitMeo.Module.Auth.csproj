@@ -11,4 +11,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\ChitMeo.Shared\ChitMeo.Shared.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Google.Apis.Auth" Version="1.73.0" />
+  </ItemGroup>
 </Project>
