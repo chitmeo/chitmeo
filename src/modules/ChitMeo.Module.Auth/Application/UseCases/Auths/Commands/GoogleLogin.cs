@@ -3,6 +3,8 @@ using ChitMeo.Mediator;
 using ChitMeo.Module.Auth.Application.Abstractions;
 using ChitMeo.Module.Auth.Application.Configurations;
 using ChitMeo.Module.Auth.Domain.Entities;
+
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 namespace ChitMeo.Module.Auth.Application.UseCases.Auths.Commands;
@@ -36,30 +38,30 @@ public static class GoogleLogin
         {
             //ValidationHelper.ValidateAndThrow(request);
 
-            var payload = await GoogleJsonWebSignature.ValidateAsync(
-                request.Token,
-                new GoogleJsonWebSignature.ValidationSettings
-                {
-                    Audience = new[] { _google.ClientId }
-                });
+            //var payload = await GoogleJsonWebSignature.ValidateAsync(
+            //    request.Token,
+            //    new GoogleJsonWebSignature.ValidationSettings
+            //    {
+            //        Audience = new[] { _google.ClientId }
+            //    });
 
-            var user = await _context.Users
-                .FirstOrDefaultAsync(x => x.GoogleId == payload.Subject, cancellationToken);
+            //var user = await _context.Users
+            //    .FirstOrDefaultAsync(x => x.GoogleId == payload.Subject, cancellationToken);
 
-            if (user == null)
-            {
-                user = new User
-                {
-                    Id = Guid.NewGuid(),
-                    GoogleId = payload.Subject,
-                    Email = payload.Email,
-                    Name = payload.Name
-                };
+            //if (user == null)
+            //{
+            //    user = new User
+            //    {
+            //        Id = Guid.NewGuid(),
+            //        GoogleId = payload.Subject,
+            //        Email = payload.Email,
+            //        Name = payload.Name
+            //    };
 
-                await _context.Users.AddAsync(user, cancellationToken);
-                await _context.SaveChangesAsync(cancellationToken);
-            }
-
+            //    await _context.Users.AddAsync(user, cancellationToken);
+            //    await _context.SaveChangesAsync(cancellationToken);
+            //}
+            var user = new User();
             var accessToken = _tokenService.GenerateAccessToken(user);
 
             return new AuthResponse(accessToken);

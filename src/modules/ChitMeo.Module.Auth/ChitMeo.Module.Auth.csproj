@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFrameworks>net9.0;net10.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
@@ -14,16 +14,4 @@
   <ItemGroup>
     <PackageReference Include="Google.Apis.Auth" Version="1.73.0" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Application\Configurations\" />
-    <Folder Include="Application\UseCases\" />
-    <Folder Include="Application\UseCases\Auths\" />
-    <Folder Include="Application\UseCases\Auths\Commands\" />
-    <Folder Include="Domain\" />
-    <Folder Include="Domain\Entities\" />
-    <Folder Include="Infrastructure\" />
-    <Folder Include="Infrastructure\Identity\" />
-    <Folder Include="Infrastructure\Persistence\" />
-    <Folder Include="Infrastructure\Security\" />
-  </ItemGroup>
-</Project>
+ </Project>
