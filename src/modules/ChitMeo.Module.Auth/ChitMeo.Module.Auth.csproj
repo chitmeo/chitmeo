@@ -14,4 +14,16 @@
   <ItemGroup>
     <PackageReference Include="Google.Apis.Auth" Version="1.73.0" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Application\Configurations\" />
+    <Folder Include="Application\UseCases\" />
+    <Folder Include="Application\UseCases\Auths\" />
+    <Folder Include="Application\UseCases\Auths\Commands\" />
+    <Folder Include="Domain\" />
+    <Folder Include="Domain\Entities\" />
+    <Folder Include="Infrastructure\" />
+    <Folder Include="Infrastructure\Identity\" />
+    <Folder Include="Infrastructure\Persistence\" />
+    <Folder Include="Infrastructure\Security\" />
+  </ItemGroup>
 </Project>

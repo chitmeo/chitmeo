@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
-namespace ChitMeo.Module.Auth.Api.Endpoints.System;
+namespace ChitMeo.Module.Auth.Api.System;
 
 public class PingEndpoint : IEndpoint
 {
