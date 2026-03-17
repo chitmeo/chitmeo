@@ -12,12 +12,16 @@ public class VersionEndpoint : IEndpoint
 {
     public void Map(RouteGroupBuilder group)
     {
-        group.MapGet("/version", Handle)
+        group.MapGet("/version", HandleAsync)
             .WithName("Version")
-            .WithTags("Info");
+            .WithTags("Info")
+            .WithSummary("Get API version")
+            .WithDescription("Returns current version of the API")
+            .Produces<GetVersion.Result>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status500InternalServerError);
     }
 
-    private static async Task<IResult> Handle(IMediator mediator)
+    private static async Task<IResult> HandleAsync(IMediator mediator)
     {
         var result = await mediator.SendAsync(new GetVersion.Command());
         return Results.Ok(result);
