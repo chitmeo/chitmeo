@@ -1,4 +1,7 @@
+using ChitMeo.Mediator;
+using ChitMeo.Module.Auth.Application.UseCases.Systems.Queries;
 using ChitMeo.Shared.Abstractions.Endpoints;
+
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -14,12 +17,9 @@ public class VersionEndpoint : IEndpoint
             .WithTags("Info");
     }
 
-    private static IResult Handle()
+    private static async Task<IResult> Handle(IMediator mediator)
     {
-        return Results.Ok(new
-        {
-            module = "Auth",
-            version = "1.0.0"
-        });
+        var result = await mediator.SendAsync(new GetVersion.Command());
+        return Results.Ok(result);
     }
 }

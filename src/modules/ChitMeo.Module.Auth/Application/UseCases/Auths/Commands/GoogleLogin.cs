@@ -34,7 +34,7 @@ public static class GoogleLogin
             _google = googleOptions.Value;
         }
 
-        public async Task<AuthResponse> Handle(Command request, CancellationToken cancellationToken)
+        public async Task<AuthResponse> HandleAsync1(Command request, CancellationToken cancellationToken)
         {
             //ValidationHelper.ValidateAndThrow(request);
 
@@ -67,9 +67,12 @@ public static class GoogleLogin
             return new AuthResponse(accessToken);
         }
 
-        public Task<AuthResponse> HandleAsync(Command request, CancellationToken cancellationToken)
+        public async Task<AuthResponse> HandleAsync(Command request, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var user = new User();
+            var accessToken = _tokenService.GenerateAccessToken(user);
+
+            return new AuthResponse(accessToken);
         }
     }
 }

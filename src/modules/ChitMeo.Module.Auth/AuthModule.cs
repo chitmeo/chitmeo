@@ -1,8 +1,7 @@
-﻿using ChitMeo.Module.Auth.Application.Abstractions;
-using ChitMeo.Module.Auth.Application.Configurations;
-using ChitMeo.Module.Auth.Infrastructure.Security;
+﻿using ChitMeo.Module.Auth.Application.Configurations;
 using ChitMeo.Shared.Abstractions.Modules;
 using ChitMeo.Shared.Infrastructure.Endpoints;
+
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -20,7 +19,11 @@ public class AuthModule : IModule
     {
         services.Configure<JwtOptions>(config.GetSection("Jwt"));
         services.Configure<GoogleOptions>(config.GetSection("Authentication:Google"));
-        services.AddScoped<ITokenService, JwtTokenService>();
+
+        services.AddDbContext(config);
+        // Register services
+        services.AddServices();
+
     }
 
     public void MapEndpoints(IEndpointRouteBuilder endpoints)
