@@ -1,7 +1,7 @@
 ﻿using ChitMeo.Module.Auth.Application.Configurations;
 using ChitMeo.Shared.Abstractions.Modules;
 using ChitMeo.Shared.Infrastructure.Endpoints;
-
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -24,6 +24,20 @@ public class AuthModule : IModule
         // Register services
         services.AddServices();
 
+        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = config["Jwt:Issuer"],
+                        ValidAudience = config["Jwt:Audience"],
+                        IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(config["Jwt:Key"]))
+                    };
+                });
     }
 
     public void MapEndpoints(IEndpointRouteBuilder endpoints)

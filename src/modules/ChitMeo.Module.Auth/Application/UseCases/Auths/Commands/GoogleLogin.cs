@@ -3,7 +3,7 @@ using ChitMeo.Mediator;
 using ChitMeo.Module.Auth.Application.Abstractions;
 using ChitMeo.Module.Auth.Application.Configurations;
 using ChitMeo.Module.Auth.Domain.Entities;
-
+using Google.Apis.Auth;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
@@ -34,42 +34,25 @@ public static class GoogleLogin
             _google = googleOptions.Value;
         }
 
-        public async Task<AuthResponse> HandleAsync1(Command request, CancellationToken cancellationToken)
-        {
-            //ValidationHelper.ValidateAndThrow(request);
-
-            //var payload = await GoogleJsonWebSignature.ValidateAsync(
-            //    request.Token,
-            //    new GoogleJsonWebSignature.ValidationSettings
-            //    {
-            //        Audience = new[] { _google.ClientId }
-            //    });
-
-            //var user = await _context.Users
-            //    .FirstOrDefaultAsync(x => x.GoogleId == payload.Subject, cancellationToken);
-
-            //if (user == null)
-            //{
-            //    user = new User
-            //    {
-            //        Id = Guid.NewGuid(),
-            //        GoogleId = payload.Subject,
-            //        Email = payload.Email,
-            //        Name = payload.Name
-            //    };
-
-            //    await _context.Users.AddAsync(user, cancellationToken);
-            //    await _context.SaveChangesAsync(cancellationToken);
-            //}
-            var user = new User();
-            var accessToken = _tokenService.GenerateAccessToken(user);
-
-            return new AuthResponse(accessToken);
-        }
-
         public async Task<AuthResponse> HandleAsync(Command request, CancellationToken cancellationToken)
         {
-            var user = new User();
+            var payload = await GoogleJsonWebSignature.ValidateAsync(request.Token);
+            var user = await _context.Users
+                .FirstOrDefaultAsync(x => x.GoogleId == payload.Subject, cancellationToken);
+
+            if (user == null)
+            {
+                user = new User
+                {
+                    Id = Guid.NewGuid(),
+                    GoogleId = payload.Subject,
+                    Email = payload.Email,
+                    Name = payload.Name
+                };
+
+                await _context.Users.AddAsync(user, cancellationToken);
+                await _context.SaveChangesAsync(cancellationToken);
+            }
             var accessToken = _tokenService.GenerateAccessToken(user);
 
             return new AuthResponse(accessToken);

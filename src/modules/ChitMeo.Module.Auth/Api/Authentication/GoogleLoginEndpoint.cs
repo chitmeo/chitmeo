@@ -1,4 +1,7 @@
+using ChitMeo.Mediator;
+using ChitMeo.Module.Auth.Application.UseCases.Auths.Commands;
 using ChitMeo.Shared.Abstractions.Endpoints;
+
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -9,10 +12,17 @@ public class GoogleLoginEndpoint : IEndpoint
 {
     public void Map(RouteGroupBuilder group)
     {
-        group.MapGet("/google-login", async (string? returnUrl) =>
+        group.MapPost("/google", async (
+            GoogleLogin.Command command,
+            IMediator mediator,
+            CancellationToken cancellationToken) =>
         {
-            var redirectUrl = $"https://accounts.google.com/o/oauth2/v2/auth?client_id=YOUR_CLIENT_ID&redirect_uri=YOUR_REDIRECT_URI&response_type=code&scope=email%20profile&state={Uri.EscapeDataString(returnUrl ?? string.Empty)}";
-            return Results.Redirect(redirectUrl);
-        }).WithName("GoogleLogin");
+            var result = await mediator.SendAsync(command, cancellationToken);
+            return Results.Ok(result);
+        })
+        .WithName("GoogleLogin")
+        .WithSummary("Login with Google")
+        .WithDescription("Authenticate user using Google ID Token")
+        .AllowAnonymous();
     }
 }

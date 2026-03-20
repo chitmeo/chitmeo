@@ -2,7 +2,6 @@ using System.Reflection;
 using ChitMeo.Module.Auth.Application.Abstractions;
 using ChitMeo.Module.Auth.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-using System.Threading;
 
 namespace ChitMeo.Module.Auth.Infrastructure.Persistence;
 
@@ -24,13 +23,13 @@ public class AuthDbContext : DbContext,IAuthDbContext
         return base.Database.GenerateCreateScript();
     }
 
-    public Task<int> SaveChangesAsync(CancellationToken cancellationToken)
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken)
     {
-        return base.SaveChangesAsync(cancellationToken);
+        return await base.SaveChangesAsync(cancellationToken);
     }
 
-    public Task SaveChangesAsync()
+    public async Task SaveChangesAsync()
     {
-        return base.SaveChangesAsync();
+        await base.SaveChangesAsync();
     }
 }
