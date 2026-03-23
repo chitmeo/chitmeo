@@ -1,5 +1,3 @@
-using System;
-
 namespace ChitMeo.Module.Auth.Domain.Entities;
 
 public class UserPassword
