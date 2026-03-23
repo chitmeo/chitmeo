@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 
 namespace ChitMeo.Module.Auth;
 
@@ -17,6 +18,7 @@ public class AuthModule : IModule
 
     public void ConfigureServices(IServiceCollection services, IConfiguration config)
     {
+        var jwtOptions = config.GetSection("Jwt").Get<JwtOptions>();
         services.Configure<JwtOptions>(config.GetSection("Jwt"));
         services.Configure<GoogleOptions>(config.GetSection("Authentication:Google"));
 
@@ -24,20 +26,31 @@ public class AuthModule : IModule
         // Register services
         services.AddServices();
 
-        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(options =>
-                {
-                    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
-                    {
-                        ValidateIssuer = true,
-                        ValidateAudience = true,
-                        ValidateLifetime = true,
-                        ValidateIssuerSigningKey = true,
-                        ValidIssuer = config["Jwt:Issuer"],
-                        ValidAudience = config["Jwt:Audience"],
-                        IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(config["Jwt:Key"]))
-                    };
-                });
+        if (jwtOptions != null)
+        {
+            ConfigureJwtAuthentication(services, jwtOptions);
+        }
+    }
+
+    private static void ConfigureJwtAuthentication(IServiceCollection services, JwtOptions jwtOptions)
+    {
+        services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        }).AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = jwtOptions.Issuer,
+                ValidAudience = jwtOptions.Audience,
+                IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(jwtOptions.Key))
+            };
+        });
     }
 
     public void MapEndpoints(IEndpointRouteBuilder endpoints)

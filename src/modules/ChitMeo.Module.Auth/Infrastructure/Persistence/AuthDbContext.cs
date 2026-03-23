@@ -5,9 +5,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ChitMeo.Module.Auth.Infrastructure.Persistence;
 
-public class AuthDbContext : DbContext,IAuthDbContext
+public class AuthDbContext : DbContext, IAuthDbContext
 {
     public DbSet<User> Users => Set<User>();
+    public DbSet<UserPassword> UserPasswords => Set<UserPassword>();
+    public DbSet<ExternalLogin> ExternalLogins => Set<ExternalLogin>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<EmailVerification> EmailVerifications => Set<EmailVerification>();
+    public DbSet<UserSession> UserSessions => Set<UserSession>();
 
     public AuthDbContext(DbContextOptions<AuthDbContext> options) : base(options)
     {

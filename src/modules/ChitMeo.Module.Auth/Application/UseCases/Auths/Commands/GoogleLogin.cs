@@ -37,17 +37,18 @@ public static class GoogleLogin
         public async Task<AuthResponse> HandleAsync(Command request, CancellationToken cancellationToken)
         {
             var payload = await GoogleJsonWebSignature.ValidateAsync(request.Token);
+
             var user = await _context.Users
-                .FirstOrDefaultAsync(x => x.GoogleId == payload.Subject, cancellationToken);
+                .FirstOrDefaultAsync(x => x.Email == payload.Email, cancellationToken);
 
             if (user == null)
             {
                 user = new User
                 {
                     Id = Guid.NewGuid(),
-                    GoogleId = payload.Subject,
+                    Name = payload.Name,
                     Email = payload.Email,
-                    Name = payload.Name
+                    EmailConfirmed = false
                 };
 
                 await _context.Users.AddAsync(user, cancellationToken);
