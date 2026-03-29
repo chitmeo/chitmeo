@@ -22,7 +22,23 @@ public static class PasswordLogin
 
         public Task<AuthResponse> HandleAsync(Command request, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.Email == request.Email, cancellationToken);
+            if (user == null)
+            {
+                throw new UnauthorizedAccessException("Invalid credentials");
+            }
+            var password = await _context.UserPasswords.FirstOrDefaultAsync(x => x.UserId == user.Id, cancellationToken);
+            if (password == null)
+            {
+                throw new UnauthorizedAccessException("Invalid credentials");
+            }
+            if (!BCrypt.Net.BCrypt.Verify(request.Password, password.PasswordHash))
+            {
+                throw new UnauthorizedAccessException("Invalid credentials");
+            }
+            var accessToken = _tokenService.GenerateAccessToken(user);
+            var refreshToken = _tokenService.GenerateRefreshToken(user);
+            return new AuthResponse(accessToken, refreshToken);
         }
 
     }
