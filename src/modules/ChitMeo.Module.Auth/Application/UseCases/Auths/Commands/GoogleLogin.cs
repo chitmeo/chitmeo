@@ -54,8 +54,19 @@ public static class GoogleLogin
                 await _context.Users.AddAsync(user, cancellationToken);
                 await _context.SaveChangesAsync(cancellationToken);
             }
-            var accessToken = _tokenService.GenerateAccessToken(user);
 
+            var accessToken = _tokenService.GenerateAccessToken(user);
+            //Hash access token and save to RefreshTokens table
+            var refreshTokenEntity = new RefreshToken
+            {
+                Id = Guid.NewGuid(),
+                UserId = user.Id,
+                Token = _tokenService.HashToken(accessToken),
+                ExpiresAt = DateTime.UtcNow.AddDays(7)
+            };
+            await _context.RefreshTokens.AddAsync(refreshTokenEntity, cancellationToken);
+
+            await _context.SaveChangesAsync(cancellationToken);
             return new AuthResponse(accessToken);
         }
     }

@@ -4,6 +4,7 @@ using ChitMeo.Shared.Abstractions.Endpoints;
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 
 namespace ChitMeo.Module.Auth.Api.Login;
@@ -13,7 +14,7 @@ public class GoogleLoginEndpoint : IEndpoint
     public void Map(RouteGroupBuilder group)
     {
         group.MapPost("/login/google", async (
-            GoogleLogin.Command command,
+            [FromBody] GoogleLogin.Command command,
             IMediator mediator,
             CancellationToken cancellationToken) =>
         {

@@ -11,7 +11,5 @@ internal class EmailVerificationConfig: IEntityTypeConfiguration<EmailVerificati
         builder.ToTable($"{Constraints.PrefixTable}{nameof(EmailVerification)}");
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).ValueGeneratedOnAdd();
-
-
     }
 }

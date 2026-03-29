@@ -9,7 +9,7 @@ public class UnlinkGoogleEndpoint : IEndpoint
 {
     public void Map(RouteGroupBuilder group)
     {
-        group.MapGet("/unlink-google",
+        group.MapPost("/unlink-google",
             () =>
             {
                 throw new NotImplementedException();

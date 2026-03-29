@@ -12,7 +12,7 @@ public class GetMeEndpoint : IEndpoint
     public void Map(RouteGroupBuilder group)
     {
         group.MapGet("/me", async (
-                GetUserById.Query query,
+                [AsParameters] GetUserById.Query query,
                 IMediator mediator,
                 CancellationToken cancellationToken) =>
             {

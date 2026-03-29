@@ -5,5 +5,5 @@ namespace ChitMeo.Module.Auth.Application.Abstractions;
 public interface ITokenService
 {
     string GenerateAccessToken(User user);
-
+    string HashToken(string token);
 }
