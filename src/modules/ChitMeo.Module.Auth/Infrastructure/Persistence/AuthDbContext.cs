@@ -16,7 +16,7 @@ public class AuthDbContext : DbContext, IAuthDbContext
 
     public AuthDbContext(DbContextOptions<AuthDbContext> options) : base(options)
     {
-        
+        ChangeTracker.LazyLoadingEnabled = false;
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -24,6 +24,12 @@ public class AuthDbContext : DbContext, IAuthDbContext
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
     }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        optionsBuilder.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+    }
+
     public string GenerateCreateScript()
     {
         return base.Database.GenerateCreateScript();
