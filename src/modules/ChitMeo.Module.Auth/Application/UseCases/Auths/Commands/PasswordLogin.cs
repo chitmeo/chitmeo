@@ -1,5 +1,9 @@
-﻿using ChitMeo.Mediator;
+﻿using BCrypt.Net;
+using ChitMeo.Mediator;
 using ChitMeo.Module.Auth.Application.Abstractions;
+using ChitMeo.Module.Auth.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
+using Org.BouncyCastle.Crypto.Generators;
 
 namespace ChitMeo.Module.Auth.Application.UseCases.Auths.Commands;
 
@@ -15,32 +19,62 @@ public static class PasswordLogin
     internal class Handler : IRequestHandler<Command, AuthResponse>
     {
         private readonly IAuthDbContext _context;
-        public Handler(IAuthDbContext context)
+        private readonly ITokenService _tokenService;
+
+        public Handler(IAuthDbContext context, ITokenService tokenService)
         {
             _context = context;
+            _tokenService = tokenService;
         }
 
-        public Task<AuthResponse> HandleAsync(Command request, CancellationToken cancellationToken)
+        public async Task<AuthResponse> HandleAsync(Command request, CancellationToken cancellationToken)
         {
-            // var user = await _context.Users.FirstOrDefaultAsync(x => x.Email == request.Email, cancellationToken);
-            // if (user == null)
-            // {
-            //     throw new UnauthorizedAccessException("Invalid credentials");
-            // }
-            // var password = await _context.UserPasswords.FirstOrDefaultAsync(x => x.UserId == user.Id, cancellationToken);
-            // if (password == null)
-            // {
-            //     throw new UnauthorizedAccessException("Invalid credentials");
-            // }
-            // if (!BCrypt.Net.BCrypt.Verify(request.Password, password.PasswordHash))
-            // {
-            //     throw new UnauthorizedAccessException("Invalid credentials");
-            // }
-            // var accessToken = _tokenService.GenerateAccessToken(user);
-            // var refreshToken = _tokenService.GenerateRefreshToken(user);
-            // return new AuthResponse(accessToken, refreshToken);
-            return new Task<AuthResponse>(() => new AuthResponse(string.Empty, string.Empty));
-        }
+            // Step 1: Check exist User by Email
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email == request.Email, cancellationToken);
 
+            if (user == null || !user.IsActive)
+            {
+                throw new UnauthorizedAccessException("Invalid credentials");
+            }
+
+            // Step 2: If exist check latest UserPassword to get current hash password in database
+            var userPassword = await _context.UserPasswords
+                .Where(up => up.UserId == user.Id && up.IsActive)
+                .OrderByDescending(up => up.Id) // Assuming latest by ID, or add CreatedAt
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (userPassword == null)
+            {
+                throw new UnauthorizedAccessException("Invalid credentials");
+            }
+
+            // Step 3: Hash Command.Password to compare
+            // Assuming BCrypt is used
+            if (!BCrypt.Net.BCrypt.Verify(request.Password, userPassword.PasswordHash))
+            {
+                throw new UnauthorizedAccessException("Invalid credentials");
+            }
+
+            // Generate tokens
+            var accessToken = _tokenService.GenerateAccessToken(user);
+            var refreshToken = Guid.NewGuid().ToString();
+            var hashedRefreshToken = _tokenService.HashToken(refreshToken);
+
+            var refreshTokenEntity = new RefreshToken
+            {
+                Id = Guid.NewGuid(),
+                UserId = user.Id,
+                Token = hashedRefreshToken,
+                ExpiresAt = DateTime.UtcNow.AddDays(7),
+                CreatedAt = DateTime.UtcNow,
+                CreatedByIP = "" // Could get from context
+            };
+
+            await _context.RefreshTokens.AddAsync(refreshTokenEntity, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            return new AuthResponse(accessToken, refreshToken);
+        }
     }
 }

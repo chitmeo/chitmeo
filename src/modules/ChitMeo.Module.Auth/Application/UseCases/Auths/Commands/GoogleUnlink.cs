@@ -1,5 +1,6 @@
 using ChitMeo.Mediator;
 using ChitMeo.Module.Auth.Application.Abstractions;
+using Microsoft.EntityFrameworkCore;
 
 
 namespace ChitMeo.Module.Auth.Application.UseCases.Auths.Commands;
@@ -8,6 +9,7 @@ public static class GoogleUnlink
 {
     public record Command : IRequest<bool>
     {
+        public Guid UserId { get; set; }
     }
 
     public class Handler : IRequestHandler<Command, bool>
@@ -21,7 +23,18 @@ public static class GoogleUnlink
 
         public async Task<bool> HandleAsync(Command request, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var externalLogin = await _dbContext.ExternalLogins
+                .FirstOrDefaultAsync(el => el.UserId == request.UserId && el.Provider == "Google", cancellationToken);
+
+            if (externalLogin == null)
+            {
+                return false; // Not linked
+            }
+
+            _dbContext.ExternalLogins.Remove(externalLogin);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+
+            return true;
         }
     }
     

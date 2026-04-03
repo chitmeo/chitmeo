@@ -1,4 +1,3 @@
-using System;
 using ChitMeo.Mediator;
 using ChitMeo.Module.Auth.Application.Abstractions;
 

@@ -1,5 +1,3 @@
-using System;
-
 namespace ChitMeo.Module.Auth.Application.Abstractions;
 
 public interface ICurrentUser

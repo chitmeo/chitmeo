@@ -22,16 +22,13 @@ public static class GoogleLogin
     {
         private readonly IAuthDbContext _context;
         private readonly ITokenService _tokenService;
-        private readonly GoogleOptions _google;
 
         public Handler(
             IAuthDbContext context,
-            ITokenService tokenService,
-            IOptions<GoogleOptions> googleOptions)
+            ITokenService tokenService)
         {
             _context = context;
             _tokenService = tokenService;
-            _google = googleOptions.Value;
         }
 
         public async Task<AuthResponse> HandleAsync(Command request, CancellationToken cancellationToken)
