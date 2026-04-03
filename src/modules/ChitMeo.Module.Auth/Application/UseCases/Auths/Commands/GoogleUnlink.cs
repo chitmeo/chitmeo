@@ -23,7 +23,7 @@ public static class GoogleUnlink
 
         public async Task<bool> HandleAsync(Command request, CancellationToken cancellationToken)
         {
-            var externalLogin = await _dbContext.ExternalLogins
+            var externalLogin = await _dbContext.ExternalLogins.AsTracking()
                 .FirstOrDefaultAsync(el => el.UserId == request.UserId && el.Provider == "Google", cancellationToken);
 
             if (externalLogin == null)

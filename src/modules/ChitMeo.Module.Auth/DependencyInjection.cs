@@ -14,6 +14,7 @@ public static class DependencyInjection
     public static void AddServices(this IServiceCollection services)
     {
         services.AddScoped<ITokenService, JwtTokenService>();
+        services.AddScoped<IGoogleAuthService, GoogleAuthService>();
     }
 
     public static void AddDbContext(this IServiceCollection services, IConfiguration config)

@@ -1,11 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Security.Claims;
 using System.Text.Json;
 using ChitMeo.Mediator;
-using ChitMeo.Module.Auth;
-using ChitMeo.Module.Auth.Api.Login;
-using ChitMeo.Module.Auth.Api.User;
-using ChitMeo.Module.Auth.Api.System;
 using ChitMeo.Module.Auth.Application.UseCases.Auths.Commands;
 using ChitMeo.Module.Auth.Application.UseCases.Systems.Queries;
 using ChitMeo.Module.Auth.Application.UseCases.Users.Queries;
@@ -26,10 +23,21 @@ public class AuthEndpointsTests
             {
                 services.AddSingleton(mediator);
                 services.AddRouting();
+                services.AddAuthentication();
+                services.AddAuthorization();
             })
             .Configure(app =>
             {
                 app.UseRouting();
+                app.Use((context, next) =>
+                {
+                    var claims = new[] { new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()) };
+                    var identity = new ClaimsIdentity(claims, "Test");
+                    context.User = new ClaimsPrincipal(identity);
+                    return next();
+                });
+                app.UseAuthentication();
+                app.UseAuthorization();
                 app.UseEndpoints(endpoints => new AuthModule().MapEndpoints(endpoints));
             });
 
@@ -137,17 +145,82 @@ public class AuthEndpointsTests
         payload!.Email.Should().Be("x@x.com");
     }
 
+    [Fact]
+    public async Task Logout_ReturnsOk()
+    {
+        var mediator = Substitute.For<IMediator>();
+        mediator.SendAsync(Arg.Any<global::ChitMeo.Module.Auth.Application.UseCases.Auths.Commands.Logout.Command>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(true));
+
+        using var client = CreateTestClient(mediator);
+
+        var response = await client.PostAsync("/auth/logout", null);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task LogoutAll_ReturnsOk()
+    {
+        var mediator = Substitute.For<IMediator>();
+        mediator.SendAsync(Arg.Any<global::ChitMeo.Module.Auth.Application.UseCases.Auths.Commands.LogoutAll.Command>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(true));
+
+        using var client = CreateTestClient(mediator);
+
+        var response = await client.PostAsync("/auth/logout-all", null);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task RefreshToken_ReturnsAuthResponse()
+    {
+        var mediator = Substitute.For<IMediator>();
+        mediator.SendAsync(Arg.Any<global::ChitMeo.Module.Auth.Application.UseCases.Tokens.Queries.Refresh.Query>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new global::ChitMeo.Module.Auth.Application.UseCases.Tokens.Queries.Refresh.Response("new-access", "new-refresh")));
+
+        using var client = CreateTestClient(mediator);
+
+        var response = await client.PostAsJsonAsync("/auth/refresh-token", new { RefreshToken = "old-token" });
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var payload = await response.Content.ReadFromJsonAsync<global::ChitMeo.Module.Auth.Application.UseCases.Tokens.Queries.Refresh.Response>();
+        payload.Should().NotBeNull();
+        payload!.AccessToken.Should().Be("new-access");
+        payload.RefreshToken.Should().Be("new-refresh");
+    }
+
+    [Fact]
+    public async Task LinkGoogle_ReturnsOk()
+    {
+        var mediator = Substitute.For<IMediator>();
+        mediator.SendAsync(Arg.Any<global::ChitMeo.Module.Auth.Application.UseCases.Auths.Commands.GoogleLink.Command>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(true));
+
+        using var client = CreateTestClient(mediator);
+
+        var response = await client.PostAsJsonAsync("/auth/link-google", new { Token = "google-token" });
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task UnlinkGoogle_ReturnsOk()
+    {
+        var mediator = Substitute.For<IMediator>();
+        mediator.SendAsync(Arg.Any<global::ChitMeo.Module.Auth.Application.UseCases.Auths.Commands.GoogleUnlink.Command>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(true));
+
+        using var client = CreateTestClient(mediator);
+
+        var response = await client.PostAsync("/auth/unlink-google", null);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
     [Theory]
-    [InlineData("/auth/logout", "post")]
-    [InlineData("/auth/logout-all", "post")]
-    [InlineData("/auth/refresh-token", "get")]
     [InlineData("/auth/register", "post")]
     [InlineData("/auth/change-password", "post")]
     [InlineData("/auth/forgot-password", "get")]
     [InlineData("/auth/reset-password", "get")]
     [InlineData("/auth/set-password", "post")]
-    [InlineData("/auth/link-google", "get")]
-    [InlineData("/auth/unlink-google", "post")]
     public async Task NotImplementedEndpoints_ReturnInternalServerError(string route, string method)
     {
         var mediator = Substitute.For<IMediator>();

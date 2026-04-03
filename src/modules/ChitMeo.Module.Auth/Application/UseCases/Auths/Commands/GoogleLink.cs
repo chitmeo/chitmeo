@@ -22,15 +22,25 @@ public static class GoogleLink
     internal class Handler : IRequestHandler<Command, bool>
     {
         private readonly IAuthDbContext _context;
+        private readonly IGoogleAuthService _googleAuthService;
 
-        public Handler(IAuthDbContext context)
+        public Handler(IAuthDbContext context, IGoogleAuthService googleAuthService)
         {
             _context = context;
+            _googleAuthService = googleAuthService;
         }
 
         public async Task<bool> HandleAsync(Command request, CancellationToken cancellationToken)
         {
-            var payload = await GoogleJsonWebSignature.ValidateAsync(request.Token);
+            GoogleJsonWebSignature.Payload? payload;
+            try
+            {
+                payload = await _googleAuthService.ValidateAsync(request.Token);
+            }
+            catch (InvalidJwtException)
+            {
+                return false;
+            }
 
             var user = await _context.Users.FindAsync(request.UserId, cancellationToken);
             if (user == null)
