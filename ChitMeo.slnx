@@ -12,5 +12,6 @@
   </Folder>
   <Folder Name="/test/">
     <Project Path="test/ChitMeo.Shared.Tests/ChitMeo.Shared.Tests.csproj" />
+    <Project Path="test/ChitMeo.Module.Auth.Tests/ChitMeo.Module.Auth.Tests.csproj" />
   </Folder>
 </Solution>
