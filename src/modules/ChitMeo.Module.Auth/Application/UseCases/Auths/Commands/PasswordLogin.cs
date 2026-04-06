@@ -76,5 +76,18 @@ public static class PasswordLogin
 
             return new AuthResponse(accessToken, refreshToken);
         }
+
+        private async Task<User> ValidateAndThrowAsync(Command request, CancellationToken cancellationToken)
+        {
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email == request.Email, cancellationToken);
+
+            if (user == null || !user.IsActive)
+            {
+                throw new UnauthorizedAccessException("Invalid credentials");
+            }
+
+            return user;
+        }
     }
 }

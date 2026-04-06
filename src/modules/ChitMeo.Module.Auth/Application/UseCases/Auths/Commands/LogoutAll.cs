@@ -1,5 +1,8 @@
+using System.ComponentModel.DataAnnotations;
 using ChitMeo.Mediator;
 using ChitMeo.Module.Auth.Application.Abstractions;
+using ChitMeo.Module.Auth.Domain.Entities;
+using ChitMeo.Shared.Helpers;
 
 namespace ChitMeo.Module.Auth.Application.UseCases.Auths.Commands;
 
@@ -7,6 +10,7 @@ public static class LogoutAll
 {
     public sealed class Command : IRequest<bool>
     {
+        [Required(ErrorMessage = "UserId is required.")]
         public Guid UserId { get; set; }
     }
 
@@ -21,10 +25,21 @@ public static class LogoutAll
 
         public async Task<bool> HandleAsync(Command request, CancellationToken cancellationToken)
         {
+            ValidationHelper.ValidateAndThrow(request);
+            await ValidateAndThrowAsync(request, cancellationToken);
+            return true;
+        }
+
+        private async Task ValidateAndThrowAsync(Command request, CancellationToken cancellationToken)
+        {
+            if (request.UserId == Guid.Empty)
+            {
+                throw new ValidationException("UserId is required.");
+            }
+
             var refreshTokens = _context.RefreshTokens.Where(rt => rt.UserId == request.UserId);
             _context.RefreshTokens.RemoveRange(refreshTokens);
             await _context.SaveChangesAsync(cancellationToken);
-            return true;
         }
     }
 }

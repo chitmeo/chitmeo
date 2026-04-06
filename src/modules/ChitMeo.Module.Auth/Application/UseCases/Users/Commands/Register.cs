@@ -1,6 +1,9 @@
+using System.ComponentModel.DataAnnotations;
+using BCrypt.Net;
 using ChitMeo.Mediator;
 using ChitMeo.Module.Auth.Application.Abstractions;
 using ChitMeo.Module.Auth.Domain.Entities;
+using ChitMeo.Shared.Helpers;
 using Microsoft.EntityFrameworkCore;
 
 namespace ChitMeo.Module.Auth.Application.UseCases.Users.Commands;
@@ -10,8 +13,14 @@ public static class Register
 
     public sealed class Command : IRequest<Guid>
     {
+        [Required(ErrorMessage = "Email is required.")]
+        [EmailAddress(ErrorMessage = "Email is not valid.")]
         public string Email { get; set; } = default!;
+
+        [Required(ErrorMessage = "Password is required.")]
         public string Password { get; set; } = default!;
+
+        [Required(ErrorMessage = "Name is required.")]
         public string Name { get; set; } = default!;
     }
 
@@ -24,15 +33,9 @@ public static class Register
         }
         public async Task<Guid> HandleAsync(Command request, CancellationToken cancellationToken)
         {
-            // Validate: No duplicate email
-            var existingUser = await _context.Users
-                .FirstOrDefaultAsync(u => u.Email == request.Email, cancellationToken);
-            if (existingUser != null)
-            {
-                throw new InvalidOperationException("Email already exists");
-            }
+            ValidationHelper.ValidateAndThrow(request);
+            await ValidateAndThrowAsync(request, cancellationToken);
 
-            // If valid, insert into User and UserPassword
             var user = new User
             {
                 Id = Guid.NewGuid(),
@@ -61,6 +64,17 @@ public static class Register
             await _context.SaveChangesAsync(cancellationToken);
 
             return user.Id;
+        }
+
+        private async Task ValidateAndThrowAsync(Command request, CancellationToken cancellationToken)
+        {
+            var existingUser = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email == request.Email, cancellationToken);
+
+            if (existingUser != null)
+            {
+                throw new InvalidOperationException("Email already exists");
+            }
         }
     }
 }

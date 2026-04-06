@@ -1,6 +1,8 @@
+using System.ComponentModel.DataAnnotations;
 using ChitMeo.Mediator;
 using ChitMeo.Module.Auth.Application.Abstractions;
 using ChitMeo.Module.Auth.Domain.Entities;
+using ChitMeo.Shared.Helpers;
 using Microsoft.EntityFrameworkCore;
 
 namespace ChitMeo.Module.Auth.Application.UseCases.Tokens.Queries;
@@ -10,6 +12,7 @@ public static class Refresh
     public record Response(string AccessToken, string RefreshToken);
     public sealed class Query : IRequest<Response>
     {
+        [Required(ErrorMessage = "Refresh token is required.")]
         public string RefreshToken { get; set; } = string.Empty;
     }
 
@@ -26,21 +29,8 @@ public static class Refresh
 
         public async Task<Response> HandleAsync(Query request, CancellationToken cancellationToken)
         {
-            var hashedToken = _tokenService.HashToken(request.RefreshToken);
-
-            var refreshTokenEntity = await _context.RefreshTokens
-                .FirstOrDefaultAsync(rt => rt.Token == hashedToken && rt.ExpiresAt > DateTime.UtcNow, cancellationToken);
-
-            if (refreshTokenEntity == null)
-            {
-                throw new UnauthorizedAccessException("Invalid or expired refresh token");
-            }
-
-            var user = await _context.Users.FindAsync(refreshTokenEntity.UserId, cancellationToken);
-            if (user == null)
-            {
-                throw new UnauthorizedAccessException("User not found");
-            }
+            ValidationHelper.ValidateAndThrow(request);
+            var user = await ValidateAndThrowAsync(request, cancellationToken);
 
             var newAccessToken = _tokenService.GenerateAccessToken(user);
             var newRefreshToken = Guid.NewGuid().ToString(); // Or better random string
@@ -60,6 +50,27 @@ public static class Refresh
             await _context.SaveChangesAsync(cancellationToken);
 
             return new Response(newAccessToken, newRefreshToken);
+        }
+
+        private async Task<User> ValidateAndThrowAsync(Query request, CancellationToken cancellationToken)
+        {
+            var hashedToken = _tokenService.HashToken(request.RefreshToken);
+
+            var refreshTokenEntity = await _context.RefreshTokens
+                .FirstOrDefaultAsync(rt => rt.Token == hashedToken && rt.ExpiresAt > DateTime.UtcNow, cancellationToken);
+
+            if (refreshTokenEntity == null)
+            {
+                throw new UnauthorizedAccessException("Invalid or expired refresh token");
+            }
+
+            var user = await _context.Users.FindAsync(refreshTokenEntity.UserId, cancellationToken);
+            if (user == null)
+            {
+                throw new UnauthorizedAccessException("User not found");
+            }
+
+            return user;
         }
     }
 
