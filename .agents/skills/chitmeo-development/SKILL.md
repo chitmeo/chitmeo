@@ -29,7 +29,7 @@ src/
 │   └── Abstractions/         # IModule, IEndpoint, DependsOn attribute, etc.
 │
 └── modules/                   # Independent modules
-    ├── ChitMeo.Module.Auth/  
+    ├── ChitMeo.Module.Auth/
     ├── ChitMeo.Module.Blog/
     └── ChitMeo.Module.Accounting/
 ```
@@ -66,14 +66,14 @@ public class AuthModule : IModule
 {
     public string Name => "Auth";
     public string RoutePrefix => "/auth";
-    
+
     public void ConfigureServices(IServiceCollection services, IConfiguration config)
     {
         services.Configure<JwtOptions>(config.GetSection("Jwt"));
         services.AddDbContext(config);
         services.AddServices();
     }
-    
+
     public void MapEndpoints(IEndpointRouteBuilder endpoints)
     {
         var group = endpoints.MapGroup(RoutePrefix).WithName(Name);
@@ -102,7 +102,7 @@ public class LoginEndpoint : IEndpoint
             .WithName("Login")
             .WithOpenApi();
     }
-    
+
     private static async Task<IResult> HandleAsync(LoginRequest req, IMediator mediator)
     {
         var result = await mediator.SendAsync(new LoginCommand(req.Email, req.Password));
@@ -130,6 +130,35 @@ public class CreateUserCommandHandler : ICommandHandler<CreateUserCommand, User>
 // Usage
 var user = await mediator.SendAsync(new CreateUserCommand("user@example.com", "password"));
 ```
+
+### Handler Validation Pattern
+In command handlers, separate request validation from business rule validation and keep `HandleAsync` focused on the main business flow.
+
+```csharp
+public class GoogleLinkCommandHandler : IRequestHandler<GoogleLinkCommand, bool>
+{
+    public async Task<bool> HandleAsync(GoogleLinkCommand request, CancellationToken cancellationToken)
+    {
+        ValidationHelper.ValidateAndThrow(request);          // validate command/request model
+        await ValidateAndThrow(request, cancellationToken);  // validate business/domain invariants
+
+        // Main business logic
+        var externalLogin = CreateExternalLogin(request, payload);
+        await _context.ExternalLogins.AddAsync(externalLogin, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    private async Task ValidateAndThrow(GoogleLinkCommand request, CancellationToken cancellationToken)
+    {
+        // business rules: user exists, not already linked, etc.
+    }
+}
+```
+
+- `ValidationHelper.ValidateAndThrow(request)` checks data annotation validation for the command model.
+- `ValidateAndThrow(...)` is a separate method for business rule validation.
+- `HandleAsync` should contain the main business logic and orchestration after validation.
 
 ### Module Dependencies
 Use `DependsOn` attribute to declare module dependencies:
@@ -247,7 +276,7 @@ namespace ChitMeo.Module.YourModule.Application.UseCases.CreateItem;
 public class CreateItemCommandHandler : ICommandHandler<CreateItemCommand, ItemResult>
 {
     private readonly IYourModuleDbContext _context;
-    
+
     public CreateItemCommandHandler(IYourModuleDbContext context)
     {
         _context = context;
@@ -258,7 +287,7 @@ public class CreateItemCommandHandler : ICommandHandler<CreateItemCommand, ItemR
         var item = new Item { Name = command.Name };
         _context.Items.Add(item);
         await _context.SaveChangesAsync();
-        
+
         return new ItemResult(item.Id, item.Name);
     }
 }
@@ -318,7 +347,7 @@ public interface IYourModuleDbContext
 public class YourModuleDbContext : DbContext, IYourModuleDbContext
 {
     public DbSet<Item> Items { get; set; }
-    
+
     public YourModuleDbContext(DbContextOptions<YourModuleDbContext> options) : base(options)
     {
     }
@@ -337,7 +366,7 @@ public class YourModuleDbContext : DbContext, IYourModuleDbContext
 public static void AddDbContext(this IServiceCollection services, IConfiguration config)
 {
     var dataConnectionOptions = config.GetSection("DataConnection").Get<DataConnectionOptions>();
-    
+
     switch (dataConnectionOptions.Provider)
     {
         case DataProvider.MySql:
@@ -434,8 +463,9 @@ public record Result<T>(bool IsSuccess, T? Data, string? Error)
 4. **Configuration-driven**: Use IOptions<T> and appsettings.json, not hardcoded values
 5. **Database per module**: Modules can have separate databases (per configuration)
 6. **DependsOn**: Declare module dependencies explicitly to control load order
-7. **Error handling**: Always return results, don't throw exceptions for business logic
-8. **Mediator pattern**: Use for all business logic to keep it isolated from endpoints
+7. **Validation ordering**: Validate request data first, then business/domain invariants in a separate helper method
+8. **Error handling**: Always return results, don't throw exceptions for business logic
+9. **Mediator pattern**: Use for all business logic to keep it isolated from endpoints
 
 ## Configuration Template
 

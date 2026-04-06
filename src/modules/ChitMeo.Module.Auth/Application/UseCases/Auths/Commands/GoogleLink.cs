@@ -1,7 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using ChitMeo.Mediator;
 using ChitMeo.Module.Auth.Application.Abstractions;
+using ChitMeo.Module.Auth.Domain;
 using ChitMeo.Module.Auth.Domain.Entities;
+using ChitMeo.Shared.Helpers;
 using Google.Apis.Auth;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,7 +11,7 @@ namespace ChitMeo.Module.Auth.Application.UseCases.Auths.Commands;
 
 public static class GoogleLink
 {
-    
+
     public sealed class Command : IRequest<bool>
     {
         [Required]
@@ -32,6 +34,8 @@ public static class GoogleLink
 
         public async Task<bool> HandleAsync(Command request, CancellationToken cancellationToken)
         {
+            ValidationHelper.ValidateAndThrow(request);
+            await ValidateAndThrow(request, cancellationToken);
             GoogleJsonWebSignature.Payload? payload;
             try
             {
@@ -39,28 +43,14 @@ public static class GoogleLink
             }
             catch (InvalidJwtException)
             {
-                return false;
-            }
-
-            var user = await _context.Users.FindAsync(request.UserId, cancellationToken);
-            if (user == null)
-            {
-                return false;
-            }
-
-            var existingLogin = await _context.ExternalLogins
-                .FirstOrDefaultAsync(el => el.UserId == request.UserId && el.Provider == "Google", cancellationToken);
-
-            if (existingLogin != null)
-            {
-                return true; // Already linked
+                throw new InvalidOperationException("Invalid Google token.");
             }
 
             var externalLogin = new ExternalLogin
             {
                 Id = Guid.NewGuid(),
                 UserId = request.UserId,
-                Provider = "Google",
+                Provider = AuthProvider.Google.ToString(),
                 ProviderUserId = payload.Subject,
                 Email = payload.Email,
                 CreatedAt = DateTime.UtcNow
@@ -70,6 +60,23 @@ public static class GoogleLink
             await _context.SaveChangesAsync(cancellationToken);
 
             return true;
+        }
+
+        private async Task ValidateAndThrow(Command request, CancellationToken cancellationToken)
+        {
+            var user = await _context.Users.FindAsync(request.UserId, cancellationToken);
+            if (user == null)
+            {
+                throw new InvalidOperationException($"User with ID {request.UserId} does not exist.");
+            }
+
+            var existingLogin = await _context.ExternalLogins
+                .FirstOrDefaultAsync(el => el.UserId == request.UserId && el.Provider == AuthProvider.Google.ToString(), cancellationToken);
+
+            if (existingLogin != null)
+            {
+                throw new InvalidOperationException($"User with ID {request.UserId} already has a linked Google account.");
+            }
         }
     }
 
