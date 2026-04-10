@@ -13,8 +13,8 @@ public class LoginWithPasswordEndpoint : IEndpoint
 {
     public void Map(RouteGroupBuilder group)
     {
-        group.MapPost("/login/password", async (
-                [FromBody] PasswordLogin.Command command,    
+        group.MapPost("/login", async (
+                [FromBody] PasswordLogin.Command command,
                 IMediator mediator,
                 CancellationToken cancellationToken) =>
             {

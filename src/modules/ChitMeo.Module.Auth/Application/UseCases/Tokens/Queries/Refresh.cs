@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using ChitMeo.Mediator;
 using ChitMeo.Module.Auth.Application.Abstractions;
 using ChitMeo.Module.Auth.Domain.Entities;
-using ChitMeo.Shared.Helpers;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace ChitMeo.Module.Auth.Application.UseCases.Tokens.Queries;
@@ -29,7 +29,7 @@ public static class Refresh
 
         public async Task<Response> HandleAsync(Query request, CancellationToken cancellationToken)
         {
-            ValidationHelper.ValidateAndThrow(request);
+
             var user = await ValidateAndThrowAsync(request, cancellationToken);
 
             var newAccessToken = _tokenService.GenerateAccessToken(user);

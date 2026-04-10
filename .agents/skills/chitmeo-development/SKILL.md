@@ -135,30 +135,41 @@ var user = await mediator.SendAsync(new CreateUserCommand("user@example.com", "p
 In command handlers, separate request validation from business rule validation and keep `HandleAsync` focused on the main business flow.
 
 ```csharp
-public class GoogleLinkCommandHandler : IRequestHandler<GoogleLinkCommand, bool>
+public class GoogleLoginCommandHandler : IRequestHandler<GoogleLoginCommand, AuthResponse>
 {
-    public async Task<bool> HandleAsync(GoogleLinkCommand request, CancellationToken cancellationToken)
+    public async Task<AuthResponse> HandleAsync(GoogleLoginCommand request, CancellationToken cancellationToken)
     {
-        ValidationHelper.ValidateAndThrow(request);          // validate command/request model
-        await ValidateAndThrow(request, cancellationToken);  // validate business/domain invariants
+        var payload = await ValidateAsync(request, cancellationToken);  // validate external token and business invariants
 
         // Main business logic
-        var externalLogin = CreateExternalLogin(request, payload);
-        await _context.ExternalLogins.AddAsync(externalLogin, cancellationToken);
+        var user = CreateUserFromPayload(payload);
+        await _context.Users.AddAsync(user, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
-        return true;
+
+        var accessToken = _tokenService.GenerateAccessToken(user);
+        return new AuthResponse(accessToken);
     }
 
-    private async Task ValidateAndThrow(GoogleLinkCommand request, CancellationToken cancellationToken)
+    private async Task<Payload> ValidateAsync(GoogleLoginCommand request, CancellationToken cancellationToken)
     {
-        // business rules: user exists, not already linked, etc.
+        // Validate Google token and get provider payload
+        var payload = await GoogleJsonWebSignature.ValidateAsync(request.Token);
+
+        // Check business rules, e.g. existing user/email collisions
+        var existingUser = await _context.Users.FirstOrDefaultAsync(x => x.Email == payload.Email, cancellationToken);
+        if (existingUser != null)
+        {
+            throw new InvalidOperationException($"User with email {payload.Email} already exists.");
+        }
+
+        return payload;
     }
 }
 ```
 
-- `ValidationHelper.ValidateAndThrow(request)` checks data annotation validation for the command model.
-- `ValidateAndThrow(...)` is a separate method for business rule validation.
-- `HandleAsync` should contain the main business logic and orchestration after validation.
+- `ValidationHelper.ValidateAndThrow(request)` checks request model validation attributes.
+- `ValidateAsync(...)` is a separate method for business/domain validation, including external token validation.
+- `HandleAsync` should orchestrate the main business flow after all validation is complete.
 
 ### Module Dependencies
 Use `DependsOn` attribute to declare module dependencies:

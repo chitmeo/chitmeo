@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using ChitMeo.Mediator;
 using ChitMeo.Module.Auth.Application.Abstractions;
 using ChitMeo.Module.Auth.Domain.Entities;
-using ChitMeo.Shared.Helpers;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace ChitMeo.Module.Auth.Application.UseCases.Auths.Commands;
@@ -26,7 +26,7 @@ public static class Logout
 
         public async Task<bool> HandleAsync(Command request, CancellationToken cancellationToken)
         {
-            ValidationHelper.ValidateAndThrow(request);
+
             var refreshTokens = await ValidateAndThrowAsync(request, cancellationToken);
 
             if (!refreshTokens.Any())

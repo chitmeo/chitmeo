@@ -3,7 +3,7 @@ using ChitMeo.Mediator;
 using ChitMeo.Module.Auth.Application.Abstractions;
 using ChitMeo.Module.Auth.Domain;
 using ChitMeo.Module.Auth.Domain.Entities;
-using ChitMeo.Shared.Helpers;
+
 using Google.Apis.Auth;
 using Microsoft.EntityFrameworkCore;
 
@@ -34,7 +34,7 @@ public static class GoogleLink
 
         public async Task<bool> HandleAsync(Command request, CancellationToken cancellationToken)
         {
-            ValidationHelper.ValidateAndThrow(request);
+
             await ValidateAndThrow(request, cancellationToken);
             GoogleJsonWebSignature.Payload? payload;
             try

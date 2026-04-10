@@ -13,7 +13,7 @@ public class GoogleLoginEndpoint : IEndpoint
 {
     public void Map(RouteGroupBuilder group)
     {
-        group.MapPost("/login/google", async (
+        group.MapPost("/google/login", async (
             [FromBody] GoogleLogin.Command command,
             IMediator mediator,
             CancellationToken cancellationToken) =>

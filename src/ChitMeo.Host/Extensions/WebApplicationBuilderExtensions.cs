@@ -1,6 +1,7 @@
 using System.Reflection;
 using ChitMeo.Mediator;
 using ChitMeo.Shared.Abstractions.Modules;
+using ChitMeo.Shared.Behaviors;
 
 namespace ChitMeo.Host.Extensions;
 
@@ -48,6 +49,7 @@ internal static class WebApplicationBuilderExtensions
         {
             services.AddSingleton<IEnumerable<IModule>>(modules);
             services.AddMediator();
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         }
 
         return services;

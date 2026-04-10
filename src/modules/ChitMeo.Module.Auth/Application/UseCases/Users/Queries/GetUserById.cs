@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using ChitMeo.Mediator;
 using ChitMeo.Module.Auth.Application.Abstractions;
-using ChitMeo.Shared.Helpers;
+
 
 namespace ChitMeo.Module.Auth.Application.UseCases.Users.Queries;
 
@@ -23,7 +23,7 @@ public static class GetUserById
         }
         public async Task<Response> HandleAsync(Query request, CancellationToken cancellationToken)
         {
-            ValidationHelper.ValidateAndThrow(request);
+
             var user = await ValidateAndThrowAsync(request, cancellationToken);
             return new Response(user.Id, user.Email, user.Name);
         }

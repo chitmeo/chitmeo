@@ -3,7 +3,7 @@ using ChitMeo.Mediator;
 using ChitMeo.Module.Auth.Application.Abstractions;
 using ChitMeo.Module.Auth.Domain;
 using ChitMeo.Module.Auth.Domain.Entities;
-using ChitMeo.Shared.Helpers;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace ChitMeo.Module.Auth.Application.UseCases.Auths.Commands;
@@ -27,7 +27,7 @@ public static class GoogleUnlink
 
         public async Task<bool> HandleAsync(Command request, CancellationToken cancellationToken)
         {
-            ValidationHelper.ValidateAndThrow(request);
+
             var externalLogin = await ValidateAndThrowAsync(request, cancellationToken);
 
             if (externalLogin == null)

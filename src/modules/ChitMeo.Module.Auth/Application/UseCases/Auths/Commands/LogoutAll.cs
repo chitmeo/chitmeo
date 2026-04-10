@@ -1,8 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using ChitMeo.Mediator;
 using ChitMeo.Module.Auth.Application.Abstractions;
-using ChitMeo.Module.Auth.Domain.Entities;
-using ChitMeo.Shared.Helpers;
+
 
 namespace ChitMeo.Module.Auth.Application.UseCases.Auths.Commands;
 
@@ -25,7 +24,7 @@ public static class LogoutAll
 
         public async Task<bool> HandleAsync(Command request, CancellationToken cancellationToken)
         {
-            ValidationHelper.ValidateAndThrow(request);
+
             await ValidateAndThrowAsync(request, cancellationToken);
             return true;
         }

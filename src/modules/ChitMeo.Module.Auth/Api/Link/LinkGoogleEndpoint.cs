@@ -1,7 +1,6 @@
 using ChitMeo.Mediator;
 using ChitMeo.Module.Auth.Application.UseCases.Auths.Commands;
 using ChitMeo.Shared.Abstractions.Endpoints;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -14,7 +13,7 @@ public class LinkGoogleEndpoint : IEndpoint
 {
     public void Map(RouteGroupBuilder group)
     {
-        group.MapPost("/link-google", async (
+        group.MapPost("/google/link", async (
             [FromBody] LinkGoogleRequest request,
             HttpContext context,
             IMediator mediator,
@@ -35,7 +34,7 @@ public class LinkGoogleEndpoint : IEndpoint
             var result = await mediator.SendAsync(command, cancellationToken);
             return result ? Results.Ok() : Results.BadRequest("Failed to link Google account");
         })
-        .WithName("LinkGoogle")
+        .WithName("GoogleLink")
         .WithTags("Link")
         .WithSummary("Link Google account")
         .WithDescription("Links the user's account with their Google account")

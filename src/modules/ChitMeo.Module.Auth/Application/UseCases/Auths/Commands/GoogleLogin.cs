@@ -2,9 +2,10 @@ using System.ComponentModel.DataAnnotations;
 using ChitMeo.Mediator;
 using ChitMeo.Module.Auth.Application.Abstractions;
 using ChitMeo.Module.Auth.Domain.Entities;
-using ChitMeo.Shared.Helpers;
+
 using Google.Apis.Auth;
 using Microsoft.EntityFrameworkCore;
+using static Google.Apis.Auth.GoogleJsonWebSignature;
 
 namespace ChitMeo.Module.Auth.Application.UseCases.Auths.Commands;
 
@@ -32,7 +33,7 @@ public static class GoogleLogin
 
         public async Task<AuthResponse> HandleAsync(Command request, CancellationToken cancellationToken)
         {
-            ValidationHelper.ValidateAndThrow(request);
+
             var payload = await ValidateAsync(request, cancellationToken);
 
             var user = new User
@@ -61,10 +62,10 @@ public static class GoogleLogin
             return new AuthResponse(accessToken);
         }
 
-        private async Task<GoogleJsonWebSignature.Payload> ValidateAsync(Command request, CancellationToken cancellationToken)
+        private async Task<Payload> ValidateAsync(Command request, CancellationToken cancellationToken)
         {
             // Validate Google token and get user info
-            var payload = null as GoogleJsonWebSignature.Payload;
+            var payload = null as Payload;
             try
             {
                 payload = await GoogleJsonWebSignature.ValidateAsync(request.Token);

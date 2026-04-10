@@ -1,7 +1,5 @@
 using ChitMeo.Mediator;
-using ChitMeo.Module.Auth.Application.UseCases.Auths.Commands;
 using ChitMeo.Shared.Abstractions.Endpoints;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -24,7 +22,7 @@ public class LogoutEndpoint : IEndpoint
                 return Results.Unauthorized();
             }
 
-            var command = new global::ChitMeo.Module.Auth.Application.UseCases.Auths.Commands.Logout.Command { UserId = userId };
+            var command = new Application.UseCases.Auths.Commands.Logout.Command { UserId = userId };
             var result = await mediator.SendAsync(command, cancellationToken);
             return result ? Results.Ok() : Results.BadRequest("Failed to logout");
         })

@@ -3,7 +3,7 @@ using BCrypt.Net;
 using ChitMeo.Mediator;
 using ChitMeo.Module.Auth.Application.Abstractions;
 using ChitMeo.Module.Auth.Domain.Entities;
-using ChitMeo.Shared.Helpers;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace ChitMeo.Module.Auth.Application.UseCases.Users.Commands;
@@ -33,7 +33,7 @@ public static class Register
         }
         public async Task<Guid> HandleAsync(Command request, CancellationToken cancellationToken)
         {
-            ValidationHelper.ValidateAndThrow(request);
+
             await ValidateAndThrowAsync(request, cancellationToken);
 
             var user = new User
